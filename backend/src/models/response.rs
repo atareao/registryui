@@ -10,10 +10,9 @@ use axum::{
         IntoResponse,
     }
 };
+use serde_json::Value;
 use serde::{Deserialize, Serialize};
 use super::paginable::Paginable;
-
-use super::Data;
 
 use crate::constants::DEFAULT_LIMIT;
 use crate::constants::DEFAULT_PAGE;
@@ -30,10 +29,10 @@ impl CustomResponse {
     pub fn pdf(headers: HeaderMap, body: Vec<u8>) -> Self {
         CustomResponse::Pdf((headers, body))
     }
-    pub fn api(status: StatusCode, message: &str, data: Data) -> Self {
+    pub fn api(status: StatusCode, message: &str, data: Option<Value>) -> Self {
         CustomResponse::Api(ApiResponse::new(status, message, data))
     }
-    pub fn paged(status: StatusCode, message: &str, data: Data, pagination: Pagination) -> Self {
+    pub fn paged(status: StatusCode, message: &str, data: Option<Value>, pagination: Pagination) -> Self {
         CustomResponse::Paged(PagedResponse::new(status, message, data, pagination))
     }
     pub fn empty(status: StatusCode, message: &str) -> Self {
@@ -52,16 +51,24 @@ pub type PdfResponse = (HeaderMap, Vec<u8>);
 pub struct ApiResponse {
     pub status: u16,
     pub message: String,
-    pub data: Data,
+    pub data: Option<Value>,
 }
 
 impl ApiResponse {
-    pub fn new(status: StatusCode, message: &str, data: Data) -> Self {
+    pub fn new(status: StatusCode, message: &str, data: Option<Value>) -> Self {
         Self {
             status: status.as_u16(),
             message: message.to_string(),
             data,
         }
+    }
+
+    pub fn success(msg: &str, data: Option<Value>) -> Self {
+        Self::new(StatusCode::OK, msg, data)
+    }
+
+    pub fn error(status: StatusCode, msg: &str) -> Self {
+        Self::new(status, msg, None)
     }
 }
 
@@ -147,12 +154,12 @@ impl Pagination {
 pub struct PagedResponse {
     pub status: u16,
     pub message: String,
-    pub data: Data,
+    pub data: Option<Value>,
     pub pagination: Pagination,
 }
 
 impl PagedResponse {
-    pub fn new(status: StatusCode, message: &str, data: Data, pagination: Pagination) -> Self {
+    pub fn new(status: StatusCode, message: &str, data: Option<Value>, pagination: Pagination) -> Self {
         Self {
             status: status.as_u16(),
             message: message.to_string(),

@@ -3,6 +3,10 @@ mod response;
 mod paginable;
 mod user;
 mod token_claims;
+mod catalog;
+mod tag_list;
+mod manifest_info;
+mod registry_client;
 
 pub type Error = Box<dyn std::error::Error>;
 pub use paginable::Paginable;
