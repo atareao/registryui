@@ -2,7 +2,9 @@ use super::ApiResponse;
 use axum::{http::StatusCode, response::IntoResponse};
 use reqwest::{Client, header};
 use serde_json::Value;
+use tracing::debug;
 
+#[derive(Clone)]
 pub struct RegistryClient {
     base_url: String,
     basic_auth: String,
@@ -10,17 +12,18 @@ pub struct RegistryClient {
 }
 
 impl RegistryClient {
-    pub fn new(base_url: String, basic_auth: String) -> Self {
+    pub fn new(base_url: String, encoded: String) -> Self {
         Self {
             base_url,
-            basic_auth,
+            basic_auth: format!("Basic {}", encoded),
             client: Client::new(),
         }
     }
 
     // 1. Obtener todos los repositorios
-    pub async fn get_catalog(&self, auth_header: &str) -> impl IntoResponse {
+    pub async fn get_catalog(self) -> impl IntoResponse {
         let url = format!("{}/v2/_catalog", self.base_url);
+        debug!("Fetching catalog from URL: {}", url);
 
         // Intentamos la operación completa
         self.fetch_registry_data(&url)
