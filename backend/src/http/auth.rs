@@ -13,7 +13,7 @@ use tracing::{debug, error};
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{encode, EncodingKey, Header};
 
-use crate::models::{ApiResponse, AppState, Data, TokenClaims, User};
+use crate::models::{ApiResponse, AppState, TokenClaims, User};
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -31,7 +31,7 @@ pub async fn login(State(app_state): State<Arc<AppState>>, Json(user_pass): Json
     if !verify(&user_pass.hashed_password, &registered_user.hashed_password).unwrap() {
         let message = "Invalid name or password";
         error!("{}", message);
-        return Err(ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None));
+        return Err(ApiResponse::error(StatusCode::FORBIDDEN, message));
     }
 
     let now = chrono::Utc::now();
@@ -51,11 +51,11 @@ pub async fn login(State(app_state): State<Arc<AppState>>, Json(user_pass): Json
     .map_err(|e| {
         let message = format!("Encoding JWT error: {}", e);
         error!("{}", message);
-        ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, &message, Data::None)
+        ApiResponse::error(StatusCode::INTERNAL_SERVER_ERROR, &message)
     })
     .map(|token| {
         let value = serde_json::json!({"token": token});
-        ApiResponse::new(StatusCode::OK, "Ok", Data::Some(value))
+        ApiResponse::success("Ok", Some(value))
     })
 }
 

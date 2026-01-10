@@ -1,14 +1,10 @@
-use axum::http::StatusCode;
-use crate::models::{ApiResponse, Data};
+use crate::models::ApiResponse;
 
 pub mod health;
 pub mod auth;
 
 pub async fn fallback_404() -> impl axum::response::IntoResponse {
-    ApiResponse::new(
-        StatusCode::NOT_FOUND,
-        "Not found",
-        Data::None
+    ApiResponse::success( "Not found",None
     )
 }
 
