@@ -5,13 +5,15 @@ use serde_json::Value;
 
 pub struct RegistryClient {
     base_url: String,
+    basic_auth: String,
     client: Client,
 }
 
 impl RegistryClient {
-    pub fn new(base_url: String) -> Self {
+    pub fn new(base_url: String, basic_auth: String) -> Self {
         Self {
             base_url,
+            basic_auth,
             client: Client::new(),
         }
     }
@@ -21,7 +23,7 @@ impl RegistryClient {
         let url = format!("{}/v2/_catalog", self.base_url);
 
         // Intentamos la operación completa
-        self.fetch_registry_data(&url, auth_header)
+        self.fetch_registry_data(&url)
             .await
             .map_or_else(
             |(status, msg)| ApiResponse::error(status, &msg),
@@ -33,12 +35,11 @@ impl RegistryClient {
     async fn fetch_registry_data(
         &self,
         url: &str,
-        auth: &str,
     ) -> Result<Value, (StatusCode, String)> {
         let resp = self
             .client
             .get(url)
-            .header(header::AUTHORIZATION, auth)
+            .header(header::AUTHORIZATION, &self.basic_auth)
             .send()
             .await
             .map_err(|e| {
@@ -66,7 +67,7 @@ impl RegistryClient {
     // 2. Obtener tags de un repositorio
     pub async fn get_tags(&self, repo: &str, auth_header: &str) -> impl IntoResponse {
         let url = format!("{}/v2/{}/tags/list", self.base_url, repo);
-        self.fetch_registry_data(&url, auth_header)
+        self.fetch_registry_data(&url)
         .await
         .map_or_else(
             |(status, msg)| ApiResponse::error(status, &msg),
@@ -79,14 +80,13 @@ impl RegistryClient {
         &self,
         repo: &str,
         tag: &str,
-        auth: &str,
     ) -> Result<String, (StatusCode, String)> {
         let url = format!("{}/v2/{}/manifests/{}", self.base_url, repo, tag);
 
         let resp = self
             .client
             .head(&url)
-            .header(header::AUTHORIZATION, auth)
+            .header(header::AUTHORIZATION, &self.basic_auth)
             // IMPORTANTE: Sin esta cabecera, el Registry puede devolverte el digest v1 en lugar del v2
             .header(
                 header::ACCEPT,
@@ -124,7 +124,7 @@ impl RegistryClient {
     // 4. Eliminar un tag (usando su digest)
     pub async fn delete_tag(&self, repo: &str, tag: &str, auth_header: &str) -> impl IntoResponse {
         // 1. Primero necesitamos el Digest
-        let digest = match self.get_manifest_digest(repo, tag, auth_header).await {
+        let digest = match self.get_manifest_digest(repo, tag).await {
             Ok(d) => d,
             Err((status, msg)) => return ApiResponse::error(status, &msg).into_response(),
         };

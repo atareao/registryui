@@ -10,6 +10,7 @@ mod registry_client;
 
 pub type Error = Box<dyn std::error::Error>;
 pub use paginable::Paginable;
+pub use registry_client::RegistryClient;
 pub use token_claims::TokenClaims;
 
 pub use user::User;
@@ -27,4 +28,5 @@ pub struct AppState {
     pub secret: String,
     pub static_dir: String,
     pub user: User,
+    pub registry_client: RegistryClient,
 }

@@ -36,6 +36,7 @@ use std::{
 };
 use models::{
     User,
+    RegistryClient,
 };
 use http::{
     health,
@@ -62,6 +63,8 @@ async fn main() -> Result<(), Error> {
 
     let username = var("USERNAME").expect("USERNAME environment mandatory");
     let hashed_password = var("HASHED_PASSWORD").expect("HASHED_PASSWORD environment mandatory");
+    let registry_url = var("REGISTRY_URL").expect("REGISTRY_URL environment mandatory");
+    let basic_auth = var("BASIC_AUTH").expect("BASIC_AUTH environment mandatory");
     let port = var("PORT").unwrap_or("3000".to_string());
     info!("Port: {}", port);
     let secret = var("SECRET").unwrap_or("esto-es-un-secreto".to_string());
@@ -87,6 +90,9 @@ async fn main() -> Result<(), Error> {
                 username,
                 hashed_password,
             },
+            registry_client: RegistryClient::new(
+                registry_url,
+                basic_auth),
     }));
 
     let app = Router::new()
