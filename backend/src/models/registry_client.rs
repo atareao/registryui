@@ -68,7 +68,7 @@ impl RegistryClient {
     }
 
     // 2. Obtener tags de un repositorio
-    pub async fn get_tags(&self, repo: &str, auth_header: &str) -> impl IntoResponse {
+    pub async fn get_tags(self, repo: String) -> impl IntoResponse {
         let url = format!("{}/v2/{}/tags/list", self.base_url, repo);
         self.fetch_registry_data(&url)
         .await

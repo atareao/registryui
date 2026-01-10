@@ -2,6 +2,7 @@
 
 This project is a full-stack web application featuring a Rust backend with Axum and a React frontend built with Vite. It appears to be designed as a user interface for a registry system.
 
+
 ## Technologies
 
 *   **Frontend:** React, Vite, TypeScript, Node.js v22
@@ -71,4 +72,17 @@ The project uses `sqlx` for database migrations. To revert migrations:
 ```bash
 cd backend
 just revert
+```
+
+### Token de registry
+
+```bash
+# Definir variables
+USER="tu_usuario"
+PASS="tu_password"
+
+# Generar el encoded (opción con printf es la más robusta)
+ENCODED=$(printf "%s:%s" "$USER" "$PASS" | base64)
+
+echo "El valor para el header es: Basic $ENCODED"
 ```
