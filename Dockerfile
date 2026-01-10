@@ -55,7 +55,6 @@ RUN apk add --update --no-cache \
 # Copy our build
 COPY --from=server-builder /server-builder/target/release/backend /app
 COPY --from=client-builder /client-builder/dist/ /app/static/
-COPY ./backend/migrations /app/migrations/
 
 # Create the user
 RUN adduser \
