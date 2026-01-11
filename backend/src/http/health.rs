@@ -13,7 +13,7 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 async fn check_health() -> impl IntoResponse {
-    ApiResponse::success("Up and running",None)
+    ApiResponse::<serde_json::Value>::success("Up and running",None)
 }
 
 

@@ -18,18 +18,24 @@ use crate::constants::DEFAULT_LIMIT;
 use crate::constants::DEFAULT_PAGE;
 
 #[derive(Debug, Clone)]
-pub enum CustomResponse {
+pub enum CustomResponse<T>
+where
+    T: Serialize,
+{
     Pdf(PdfResponse),
-    Api(ApiResponse),
+    Api(ApiResponse<T>),
     Empty(EmptyResponse),
     Paged(PagedResponse),
 }
 
-impl CustomResponse {
+impl<T> CustomResponse<T>
+where
+    T: Serialize,
+{
     pub fn pdf(headers: HeaderMap, body: Vec<u8>) -> Self {
         CustomResponse::Pdf((headers, body))
     }
-    pub fn api(status: StatusCode, message: &str, data: Option<Value>) -> Self {
+    pub fn api(status: StatusCode, message: &str, data: Option<T>) -> Self {
         CustomResponse::Api(ApiResponse::new(status, message, data))
     }
     pub fn paged(status: StatusCode, message: &str, data: Option<Value>, pagination: Pagination) -> Self {
@@ -48,14 +54,17 @@ pub type PdfResponse = (HeaderMap, Vec<u8>);
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ApiResponse {
+pub struct ApiResponse<T>
+where
+    T: Serialize,
+{
     pub status: u16,
     pub message: String,
-    pub data: Option<Value>,
+    pub data: Option<T>,
 }
 
-impl ApiResponse {
-    pub fn new(status: StatusCode, message: &str, data: Option<Value>) -> Self {
+impl<T> ApiResponse<T> where T: Serialize {
+    pub fn new(status: StatusCode, message: &str, data: Option<T>) -> Self {
         Self {
             status: status.as_u16(),
             message: message.to_string(),
@@ -63,8 +72,14 @@ impl ApiResponse {
         }
     }
 
-    pub fn success(msg: &str, data: Option<Value>) -> Self {
+    pub fn success(msg: &str, data: Option<T>) -> Self {
         Self::new(StatusCode::OK, msg, data)
+    }
+}
+
+impl ApiResponse<Value> {
+    pub fn ok(msg: &str) -> Self {
+        Self::new(StatusCode::OK, msg, None)
     }
 
     pub fn error(status: StatusCode, msg: &str) -> Self {
@@ -72,38 +87,56 @@ impl ApiResponse {
     }
 }
 
-impl From<ApiResponse> for CustomResponse {
-    fn from(api_response: ApiResponse) -> Self {
+impl<T> From<ApiResponse<T>> for CustomResponse<T>
+where
+    T: Serialize
+{
+    fn from(api_response: ApiResponse<T>) -> Self {
         CustomResponse::Api(api_response)
     }
 }
 
-impl From<EmptyResponse> for CustomResponse {
+impl<T> From<EmptyResponse> for CustomResponse<T>
+where
+    T: Serialize
+{
     fn from(empty_response: EmptyResponse) -> Self {
         CustomResponse::Empty(empty_response)
     }
 }
 
-impl From<PdfResponse> for CustomResponse {
+impl<T> From<PdfResponse> for CustomResponse<T>
+where
+    T: Serialize
+{
     fn from(pdf_response: PdfResponse) -> Self {
         CustomResponse::Pdf(pdf_response)
     }
 }
 
-impl From<PagedResponse> for CustomResponse {
+impl<T> From<PagedResponse> for CustomResponse<T>
+where
+    T: Serialize
+{
     fn from(paged_response: PagedResponse) -> Self {
         CustomResponse::Paged(paged_response)
     }
 }
 
-impl IntoResponse for ApiResponse {
+impl<T> IntoResponse for ApiResponse<T> 
+where
+    T: Serialize
+{
     fn into_response(self) -> Response {
         let status = StatusCode::from_u16(self.status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
         (status, Json(self)).into_response()
     }
 }
 
-impl IntoResponse for CustomResponse {
+impl<T> IntoResponse for CustomResponse<T>
+where
+    T: Serialize
+{
     fn into_response(self) -> Response {
         match self {
             CustomResponse::Pdf((headers, body)) => (headers, body).into_response(),

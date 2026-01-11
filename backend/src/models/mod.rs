@@ -7,6 +7,11 @@ mod catalog;
 mod tag_list;
 mod manifest_info;
 mod registry_client;
+mod repository_info;
+mod manifest_v2;
+mod config_descriptor;
+mod layer_descriptor;
+mod tag_detail;
 
 pub type Error = Box<dyn std::error::Error>;
 pub use paginable::Paginable;
@@ -15,7 +20,6 @@ pub use token_claims::TokenClaims;
 
 pub use user::User;
 
-pub use data::Data;
 pub use response::{
     ApiResponse,
     CustomResponse,

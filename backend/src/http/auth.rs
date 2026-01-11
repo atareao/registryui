@@ -9,6 +9,7 @@ use axum::{
 };
 use bcrypt::verify;
 use tracing::{debug, error};
+use serde_json::Value;
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{encode, EncodingKey, Header};
@@ -21,7 +22,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/logout", routing::get(logout))
 }
 
-type Result = std::result::Result<ApiResponse, ApiResponse>;
+type Result = std::result::Result<ApiResponse<Value>, ApiResponse<Value>>;
 
 pub async fn login(State(app_state): State<Arc<AppState>>, Json(user_pass): Json<User>) -> Result {
     //) -> Result<Json<serde_json::Value>,(StatusCode, Json<serde_json::Value>)>{

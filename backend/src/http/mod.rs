@@ -5,7 +5,7 @@ pub mod auth;
 pub mod registry;
 
 pub async fn fallback_404() -> impl axum::response::IntoResponse {
-    ApiResponse::success( "Not found",None
+    ApiResponse::<serde_json::Value>::success( "Not found",None
     )
 }
 
